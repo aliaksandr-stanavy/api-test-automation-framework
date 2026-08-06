@@ -1,0 +1,9 @@
+﻿# Memes API test automation — runtime dependencies only
+# Dev tooling (mypy, pre-commit): pip install -r requirements-dev.txt
+pytest==9.0.1
+allure-pytest==2.15.2
+requests==2.32.4
+tenacity==9.1.2
+Faker==38.2.0
+python-dotenv==1.2.1
+pytest-xdist==3.8.0

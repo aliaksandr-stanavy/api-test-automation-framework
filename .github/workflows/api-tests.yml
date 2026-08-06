@@ -1,0 +1,191 @@
+name: API Tests with Allure Report
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Select test suite to run'
+        type: choice
+        required: true
+        default: 'critical'
+        options: [all, critical, medium, security]
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: read
+
+jobs:
+  download-history:
+    name: 📥 Download previous test history
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download history via GitHub CLI
+        id: download-history
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          echo "Looking for previous runs..."
+          RUN_ID=$(gh run list --status completed --limit 10 --json databaseId \
+            | jq -r --arg CID "${{ github.run_id }}" '.[] | select(.databaseId | tostring != $CID) | .databaseId' \
+            | head -n 1)
+
+          if [ -z "$RUN_ID" ]; then
+            echo "No previous runs found."
+            exit 0
+          fi
+          echo "Found previous run ID: $RUN_ID"
+
+          mkdir -p previous-history
+          gh run download $RUN_ID --name allure-history --dir previous-history || echo "Artifact not found"
+
+      - name: Upload history transport
+        uses: actions/upload-artifact@v4
+        with:
+          name: internal-history-transport
+          path: previous-history
+          retention-days: 1
+          if-no-files-found: ignore
+
+  run-api-tests:
+    name: 🧪 Run API Tests
+    runs-on: ubuntu-latest
+    needs: download-history
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Download history transport
+        uses: actions/download-artifact@v4
+        with:
+          name: internal-history-transport
+          path: previous-history
+        continue-on-error: true
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run mypy
+        run: mypy
+
+      - name: Run API tests
+        id: pytest
+        env:
+          BASE_URL: ${{ secrets.BASE_URL }}
+          TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+          TEST_TOKEN: ${{ secrets.TEST_TOKEN }}
+        run: |
+          SELECTED_SUITE="${{ github.event.inputs.test_suite || 'all' }}"
+          if [ "$SELECTED_SUITE" = "all" ]; then
+            pytest --alluredir=allure-results
+          else
+            pytest -m "$SELECTED_SUITE" --alluredir=allure-results
+          fi
+
+      # Resolve conflict with pytest.ini: restore history AFTER pytest cleans the folder
+      - name: Restore history for Trends
+        if: always() && !cancelled()
+        run: |
+          mkdir -p allure-results/history
+          if [ -d "previous-history" ] && [ -n "$(ls -A previous-history)" ]; then
+            cp -r previous-history/* allure-results/history/
+            echo "History restored after pytest"
+          fi
+
+      - name: Report test statistics
+        if: always() && !cancelled()
+        run: |
+          echo "TEST STATISTICS:"
+          if [ -d "allure-results/history" ]; then
+            echo "History files for Trends: $(find allure-results/history -type f | wc -l)"
+          fi
+
+      - name: Save results
+        if: always() && !cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-raw
+          path: allure-results
+          retention-days: 7
+          if-no-files-found: ignore
+
+  generate-allure-report:
+    name: 📊 Generate Allure Report
+    runs-on: ubuntu-latest
+    needs: run-api-tests
+    if: always() && needs.run-api-tests.result != 'cancelled'
+    steps:
+      - name: Download results
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results-raw
+          path: allure-results
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Allure CLI
+        run: |
+          sudo npm install -g allure-commandline --save-dev
+          allure --version
+
+      - name: Generate Allure report
+        run: |
+          allure generate allure-results -o _site --clean
+
+      - name: Prepare history for FUTURE runs
+        run: |
+          mkdir -p allure-history-folder
+          if [ -d "_site/history" ]; then
+            cp -r _site/history/* allure-history-folder/
+            echo "New history saved"
+          fi
+
+      - name: Upload Artifacts
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+      - name: Upload History Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-history
+          path: allure-history-folder
+          retention-days: 7
+
+  deploy-to-pages:
+    name: 🚀 Deploy to Pages
+    runs-on: ubuntu-latest
+    needs: generate-allure-report
+    if: >
+      always()
+      && needs.generate-allure-report.result == 'success'
+      && github.event_name == 'push'
+      && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

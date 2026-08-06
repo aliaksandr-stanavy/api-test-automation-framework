@@ -60,6 +60,10 @@ jobs:
     name: 🧪 Run API Tests
     runs-on: ubuntu-latest
     needs: download-history
+    env:
+      BASE_URL: ${{ secrets.BASE_URL }}
+      TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+      TEST_TOKEN: ${{ secrets.TEST_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -77,6 +81,26 @@ jobs:
           path: previous-history
         continue-on-error: true
 
+      - name: Verify repository secrets are set
+        run: |
+          missing=0
+          if [ -z "${BASE_URL}" ]; then
+            echo "::error::Secret BASE_URL is empty. Add it in Settings → Secrets and variables → Actions (Repository secrets)."
+            missing=1
+          fi
+          if [ -z "${TEST_USERNAME}" ]; then
+            echo "::error::Secret TEST_USERNAME is empty."
+            missing=1
+          fi
+          if [ -z "${TEST_TOKEN}" ]; then
+            echo "::error::Secret TEST_TOKEN is empty."
+            missing=1
+          fi
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+          echo "Required secrets are present (values not printed)."
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
@@ -87,10 +111,6 @@ jobs:
 
       - name: Run API tests
         id: pytest
-        env:
-          BASE_URL: ${{ secrets.BASE_URL }}
-          TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
-          TEST_TOKEN: ${{ secrets.TEST_TOKEN }}
         run: |
           SELECTED_SUITE="${{ github.event.inputs.test_suite || 'all' }}"
           if [ "$SELECTED_SUITE" = "all" ]; then

@@ -1,4 +1,4 @@
-# Memes API — Test Automation
+# 🧪 Memes API — Test Automation
 
 **Язык:** Русский · [English](README.en.md)
 
@@ -12,51 +12,54 @@
 
 **API test automation framework** для Memes API на Python + Pytest + Allure + Requests.
 
+> Этот проект — **демонстрация промышленного подхода** к тестированию API: чистая архитектура, глубокая проверка безопасности, автоматическая отчётность и полноценный CI/CD.
+
 | Старт | Документация |
 |-------|----------------|
 | [Быстрый старт](docs/ru/quick-start.md) (~5 мин) | [Оглавление RU](docs/ru/index.md) · [EN](docs/en/index.md) · [языки](docs/README.md) |
 
 ---
 
-## О проекте
+## 📖 О проекте
 
-Демонстрационный фреймворк автоматизации API-тестов. Показывает, как выстроить инфраструктуру с:
+Фреймворк показывает, как выстроить инфраструктуру API-автоматизации с акцентом на **надёжность, поддерживаемость и прозрачность результатов**.
 
-- чёткой архитектурой (Page Object для API);
-- Allure-отчётами с шагами и вложениями request/response;
-- маркерами приоритета (`critical` / `medium` / `security`);
-- позитивными, негативными и security/ownership-сценариями;
-- CI/CD через GitHub Actions и публикацией отчёта на Pages;
-- генерацией данных (Faker) и polling после kill token (Tenacity);
-- статическими проверками (mypy + TypedDict) и pre-commit хуками.
+**Ключевые возможности:**
+- 🏗️ **Page Object для API** — чёткая архитектура клиентов.
+- 📊 **Allure-отчёты** — с шагами, вложениями request/response и маскированием токенов.
+- 🏷️ **Маркеры приоритетов** (`critical` / `medium` / `security`) для гибкого запуска.
+- 🔒 **Security-сценарии** — проверка `401`/`403` с подтверждением, что данные **не изменились**.
+- ⚙️ **CI/CD** — GitHub Actions с автоматической публикацией отчёта на GitHub Pages.
+- 🎲 **Генерация данных** (Faker) и **polling** (Tenacity) для тестов с ожиданием.
+- 🛡️ **Статический анализ** — mypy + TypedDict, pre-commit хуки в CI.
 
-### Что демонстрирую
+### 🔥 Что именно демонстрирую
 
-- изоляцию ресурсов: session-токен, disposable kill-token, teardown мемов даже при падении теста;
-- security глубже статус-кода: `401`/`403` + проверка, что данные не изменились / мем не удалён;
-- известный дефект API зафиксирован через `xfail` (PUT возвращает `id` как string);
-- типизацию клиентов и payload (mypy + TypedDict) и pre-commit в CI;
-- полный контур отчёта: Allure (request/response, маскирование токена) → GitHub Actions → Pages.
+- **Ресурсную изоляцию:** сессионный токен, disposable kill-токен и гарантированный teardown мемов (даже при падении теста).
+- **Security глубже статус-кода:** проверяем не только `401`/`403`, но и что ресурс **реально не изменился**.
+- **Известный дефект API:** зафиксирован через `xfail` (PUT возвращает `id` как string).
+- **Качество кода:** типизация клиентов и payload (mypy + TypedDict), pre-commit в CI.
+- **Полный контур отчёта:** Allure → GitHub Actions → GitHub Pages.
 
 ---
 
-## Стек
+## 🛠 Стек
 
 | Компонент | Технология |
 |-----------|------------|
-| Язык | Python 3.12+ |
-| Тест-раннер | Pytest 9.0.1 |
-| HTTP-клиент | Requests 2.32.4 |
-| Отчёты | allure-pytest 2.15.2 |
-| Генерация данных | Faker 38.2.0 |
-| Retry / polling | Tenacity 9.1.2 |
-| Типы / хуки | mypy, TypedDict, pre-commit |
-| CI/CD | GitHub Actions → Allure на Pages |
-| Стенд | Memes API (URL задаётся в `.env` / Secrets как `BASE_URL`) |
+| 🐍 Язык | Python 3.12+ |
+| 🧪 Тест-раннер | Pytest 9.0.1 |
+| 🌐 HTTP-клиент | Requests 2.32.4 |
+| 📊 Отчёты | allure-pytest 2.15.2 |
+| 🎲 Генерация данных | Faker 38.2.0 |
+| 🔁 Retry / polling | Tenacity 9.1.2 |
+| 🛡️ Типы / хуки | mypy, TypedDict, pre-commit |
+| ⚙️ CI/CD | GitHub Actions → Allure на Pages |
+| 🔗 Стенд | Memes API (URL задаётся в `.env` / Secrets как `BASE_URL`) |
 
 ---
 
-## Быстрый старт
+## 🚀 Быстрый старт
 
 ```bash
 git clone https://github.com/aliaksandr-stanavy/api-test-automation-framework.git
@@ -68,7 +71,7 @@ python -m venv .venv
 
 pip install -r requirements.txt
 copy .env.example .env   # или: cp .env.example .env
-# заполните BASE_URL, TEST_USERNAME, TEST_TOKEN
+# заполните BASE_URL, TEST_USERNAME, TEST_TOKEN (опционально)
 
 make critical
 # или: pytest -m critical -q
@@ -84,7 +87,7 @@ make critical
 
 ---
 
-## Структура
+## 📁 Структура
 
 ```text
 api-test-automation-framework/
@@ -102,45 +105,30 @@ api-test-automation-framework/
 └── CHANGELOG.md
 ```
 
-Устройство кода и фикстур: [architecture](docs/ru/architecture.md) · [fixtures-reference](docs/ru/fixtures-reference.md).
-
 ---
 
-## Документация
+## 📚 Документация
 
-Полное оглавление: **[docs/ru/index.md](docs/ru/index.md)**. Ниже — тот же порядок чтения и вход по задаче.
+Полное оглавление: **[docs/ru/index.md](docs/ru/index.md)**. Ниже — навигация по документации.
 
-### Порядок чтения
+### Навигация по документации
 
-1. [Быстрый старт](docs/ru/quick-start.md) — результат за ~5 минут  
-2. [Архитектура](docs/ru/architecture.md) — как устроен код  
-3. [Справочник фикстур](docs/ru/fixtures-reference.md) — какие фикстуры и когда  
-4. [BRD](docs/ru/brd.md) — *что* умеет API  
-5. [QA-требования](docs/ru/qa-requirements.md) — *как* тестируем  
-6. [Локальный запуск](docs/ru/local-run.md) — Make, pytest, Allure  
-7. [Pre-commit](docs/ru/pre-commit.md) — хуки перед коммитом  
-8. [CI/CD](docs/ru/ci-cd.md) — GitHub Actions  
-9. [Анализ результатов](docs/ru/test-analysis.md) — как разбирать падения  
-10. [Troubleshooting](docs/ru/troubleshooting.md) — типичные проблемы  
+| Если вам нужно... | Документ | ⏱ Примерное время |
+|---|---|---|
+| **Запустить тесты** | [Быстрый старт](docs/ru/quick-start.md) | ~5 минут |
+| **Понять устройство кода** | [Архитектура](docs/ru/architecture.md) | 15 минут |
+| **Выбрать фикстуру** | [Справочник фикстур](docs/ru/fixtures-reference.md) | 10 минут |
+| **Узнать контракт продукта** | [BRD](docs/ru/brd.md) | 10 минут |
+| **Проверить ожидаемые коды** | [QA-требования](docs/ru/qa-requirements.md) | 10 минут |
+| **Узнать все Make-команды** | [Локальный запуск](docs/ru/local-run.md) | 5 минут |
+| **Разобрать красный CI** | [CI/CD](docs/ru/ci-cd.md) + [Анализ результатов](docs/ru/test-analysis.md) | 15 минут |
+| **Решить проблему** | [Troubleshooting](docs/ru/troubleshooting.md) | 5 минут |
 
 История изменений: [CHANGELOG.md](CHANGELOG.md).
 
-### По задаче
-
-| Нужно | Документ |
-|-------|----------|
-| Запустить тесты сейчас | [quick-start](docs/ru/quick-start.md) |
-| Понять устройство кода | [architecture](docs/ru/architecture.md) |
-| Какую фикстуру взять | [fixtures-reference](docs/ru/fixtures-reference.md) |
-| Контракт продукта | [brd](docs/ru/brd.md) |
-| Ожидаемые коды и маркеры | [qa-requirements](docs/ru/qa-requirements.md) |
-| Все Make-команды | [local-run](docs/ru/local-run.md) |
-| Разобрать красный CI | [ci-cd](docs/ru/ci-cd.md) + [test-analysis](docs/ru/test-analysis.md) |
-| «У меня не работает» | [troubleshooting](docs/ru/troubleshooting.md) |
-
 ---
 
-## Что покрыто
+## ✅ Что покрыто
 
 - Authorize, CRUD meme, E2E lifecycle  
 - Валидация полей и invalid ids  
@@ -151,7 +139,7 @@ api-test-automation-framework/
 
 ---
 
-## Allure Report
+## 📊 Allure Report
 
 ```bash
 pytest --alluredir=allure-results
@@ -161,14 +149,27 @@ allure serve allure-results
 
 В CI отчёт публикуется на **GitHub Pages**:
 [https://aliaksandr-stanavy.github.io/api-test-automation-framework/](https://aliaksandr-stanavy.github.io/api-test-automation-framework/)
-(ссылка станет активной после первого успешного deploy на `main`). Подробнее: [local-run](docs/ru/local-run.md), [ci-cd](docs/ru/ci-cd.md).
+Подробнее: [local-run](docs/ru/local-run.md), [ci-cd](docs/ru/ci-cd.md).
 
 ---
 
-## Автор и лицензия
+## 👤 Автор
 
-Проект создан в рамках развития экспертизы **Full Stack QA | Automation QA**.
+Этот проект создан в рамках развития моей экспертизы в **Full Stack QA** и является частью моего публичного **GitHub-портфолио**.
+Его цель — показать современные подходы к построению API-фреймворков, организации тестов и CI/CD.
 
-- GitHub: [aliaksandr-stanavy](https://github.com/aliaksandr-stanavy)
-- LinkedIn: [aliaksandr-stanavy](https://www.linkedin.com/in/aliaksandr-stanavy/)
-- License: [MIT](LICENSE) © 2026 Aliaksandr Stanavy
+Буду рад обратной связи, предложениям и профессиональному общению.
+
+- 🌐 **GitHub Portfolio:** https://github.com/aliaksandr-stanavy
+- 💼 **LinkedIn:** https://www.linkedin.com/in/aliaksandr-stanavy/
+- 📧 **Email:** aliaksandr.stanavy@gmail.com
+
+---
+
+## 📄 Лицензия
+
+Проект распространяется по лицензии **MIT**.
+
+Подробности см. в файле [LICENSE](LICENSE).
+
+© 2026 Aliaksandr Stanavy
